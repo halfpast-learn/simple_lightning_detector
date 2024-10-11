@@ -1,0 +1,43 @@
+# MP4 video files
+*.mp4
+
+# IDE and editor files
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace
+
+# Python-related files
+__pycache__/
+*.py[cod]
+*.so
+
+# Virtual environments
+venv/
+env/
+.venv/
+virtualenv/
+ENV/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# Dependency management
+pip-log.txt
+pip-delete-this-directory.txt
+
+# Build and distribution
+build/
+dist/
+*.egg-info/
+
+# Logs and databases
+*.log
+*.sqlite
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
