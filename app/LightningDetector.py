@@ -3,10 +3,11 @@ import numpy as np
 import matplotlib.pyplot as plt 
 import os
 from tqdm import tqdm
+from datetime import datetime 
 
 class LightningDetector:
     def __init__(self):
-        pass
+        self.today = datetime.now().strftime("%Y%m%d")
 
     def find_brightness_values(self, video_path):
         cap = cv2.VideoCapture(video_path)
@@ -27,7 +28,7 @@ class LightningDetector:
         
         return frame_brightness_values
     
-    def calculate_brightness_threshold(frame_brightness_values):
+    def calculate_brightness_threshold(self, frame_brightness_values):
         mean_brightness = np.mean(frame_brightness_values)
         std_brightness = np.std(frame_brightness_values)
         
@@ -50,9 +51,6 @@ class LightningDetector:
                 if brightness_increase > 2 * filtered_std and current_frame_brightness > threshold:
                     timestamp = i / frame_rate
                     flash_timestamps.append(timestamp)
-                    minutes = int(timestamp // 60)
-                    seconds = int(timestamp % 60)
-                    print(f"Flash detected at {minutes}:{seconds:02d} minutes")
 
             previous_brightness = current_frame_brightness
         return flash_timestamps
@@ -67,7 +65,10 @@ class LightningDetector:
         width = int(cap.get(cv2.CAP_PROP_FRAME_WIDTH))
         height = int(cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
 
-        output_filename = f"./combined_cuts_{os.path.basename(video_path)}"
+        clips_folder = f"./clips/{self.today}"
+        os.makedirs(clips_folder, exist_ok=True)
+
+        output_filename = os.path.join(clips_folder, f"clips_{os.path.basename(video_path)}")
         fourcc = cv2.VideoWriter_fourcc(*'mp4v')
         out = cv2.VideoWriter(output_filename, fourcc, frame_rate, (width, height))
 
@@ -84,7 +85,7 @@ class LightningDetector:
             clip_timestamps.append((start_timestamp, end_timestamp))
             i += 1
 
-        for clip_num, (start_timestamp, end_timestamp) in enumerate(clip_timestamps, 1):
+        for start_timestamp, end_timestamp in clip_timestamps:
             start_frame = int(start_timestamp * frame_rate)
             end_frame = int(end_timestamp * frame_rate)
 
@@ -96,11 +97,8 @@ class LightningDetector:
                     break
                 out.write(frame)
 
-            print(f"Added clip {clip_num} to combined video")
-
         out.release()
         cap.release()
-        print(f"Saved combined video: {output_filename}")
 
     def plot_brightness_over_time(self, frame_brightness, threshold, frame_rate=30):
         time_stamps = [i / frame_rate for i in range(len(frame_brightness))]
@@ -119,7 +117,10 @@ class LightningDetector:
         combined_videos = [f for f in os.listdir(folder_path) if f.startswith('combined_') and f.endswith('.mp4')]
 
         if combined_videos:
-            output_path = os.path.join(folder_path, 'final_combined_video.mp4')
+            merged_folder = os.path.join(f"./clips/{self.today}", "merged")
+            os.makedirs(merged_folder, exist_ok=True)
+            
+            output_path = os.path.join(merged_folder, 'final_clips.mp4')
             
             first_video = cv2.VideoCapture(os.path.join(folder_path, combined_videos[0]))
             fps = first_video.get(cv2.CAP_PROP_FPS)
@@ -140,9 +141,9 @@ class LightningDetector:
                 cap.release()
 
             out.release()
-            print(f"All combined videos have been merged into: {output_path}")
+            print(f"All clips have been merged into: {output_path}")
         else:
-            print("No combined videos found to merge.")
+            print("No clips found to merge.")
         
     def process_videos(self, folder_path):
         video_paths = [os.path.join(folder_path, f) for f in os.listdir(folder_path) if f.endswith('.mp4')]
@@ -165,4 +166,4 @@ class LightningDetector:
             else:
                 print(f"No lightning flashes detected in {video_path}")
 
-        self.merge_combined_videos(folder_path)
+        self.merge_combined_videos(f"./clips/{self.today}")
