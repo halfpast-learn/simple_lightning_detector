@@ -19,7 +19,7 @@ The project consists of two main Python files and a Jupyter notebook:
 
 ## Requirements
 
-- Python 3.6+
+- Python 3.12+
 - OpenCV (cv2)
 - NumPy
 - Matplotlib
